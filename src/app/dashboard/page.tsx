@@ -1,21 +1,32 @@
 'use client'
+
 import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Loader2, Scale, CheckCircle, XCircle } from "lucide-react"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Loader2, Scale, CheckCircle, XCircle, PlusCircle, Pencil, Trash2 } from "lucide-react"
 import Image from 'next/image'
-import logo from '@/public/balance.png';
+import logo from '@/public/balance.png'
 import Meteors from '@/components/magicui/meteors'
 import Particles from '@/components/magicui/particles'
 
 export default function Component() {
   const [isLoading, setIsLoading] = useState(false)
   const [showResult, setShowResult] = useState(false)
-  const [color, setColor] = useState("#ffffff");
+  const [showEvidenceModal, setShowEvidenceModal] = useState(false)
+  const [color, setColor] = useState("#ffffff")
+  const [editingIndex, setEditingIndex] = useState(-1)
+
+  const [newEvidence, setNewEvidence] = useState({
+    evidenceType: "",
+    evidenceName: "",
+    evidenceData: "",
+    evidenceHash:"",
+    submittedBy: ""
+  })
 
   const [verdict, setVerdict] = useState({ 
     decision: '', 
@@ -24,65 +35,112 @@ export default function Component() {
     inFavorOf: ''
   })
 
-  // Pre-filled form data for testing
   const [disputeDetails, setDisputeDetails] = useState({
-    disputeTitle: "Non-Delivery of Services",
-    description: "Party X claims that Party Y failed to deliver the agreed services after receiving full payment.",
-    partiesInvolved: {
-      accuser: "Party X",
-      accused: "Party Y"
-    },
-    evidence: [
-      {
-        evidenceType: "contract",
-        evidenceName: "Service Contract",
-        evidenceData: "Contract for web development services signed on 2024-08-01.",
-        evidenceHash: "abc123",
-        submittedBy: "Party X"
-      },
-      {
-        evidenceType: "paymentProof",
-        evidenceName: "Payment Receipt",
-        evidenceData: "Receipt showing full payment of $5000 made to Party Y on 2024-08-05.",
-        evidenceHash: "def456",
-        submittedBy: "Party X"
-      },
-      // {
-      //   evidenceType: "serviceLogs",
-      //   evidenceName: "Service Delivery Logs",
-      //   evidenceData: "Logs indicating partial work with no clear delivery dates or milestones.",
-      //   evidenceHash: "ghi789",
-      //   submittedBy: "Party Y"
-      // }
-    ]
+      "disputeTitle": "Non-Delivery of Services",
+      "description": "Party X claims that Party Y failed to deliver the agreed services after receiving full payment.",
+      "partiesInvolved": [
+        "Party X",
+        "Party Y"
+      ],
+      "evidence": [
+        {
+          "evidenceType": "contract",
+          "evidenceName": "Service Contract",
+          "evidenceData": "Contract for web development services signed on 2024-08-01.",
+          "evidenceHash": "abc123",
+          "submittedBy": "Party X"
+        },
+        {
+          "evidenceType": "paymentProof",
+          "evidenceName": "Payment Receipt",
+          "evidenceData": "Receipt showing full payment of $5000 made to Party Y on 2024-08-05.",
+          "evidenceHash": "def456",
+          "submittedBy": "Party X"
+        },
+        {
+          "evidenceType": "serviceLogs",
+          "evidenceName": "Service Delivery Logs",
+          "evidenceData": "Logs indicating partial work with no clear delivery dates or milestones.",
+          "evidenceHash": "ghi789",
+          "submittedBy": "Party Y"
+        }
+      ]
   })
 
-  const handleChange = (e, index, field) => {
-    const newEvidence = [...disputeDetails.evidence]
-    newEvidence[index][field] = e.target.value
+  const handleNewEvidenceChange = (e) => {
+    setNewEvidence({ ...newEvidence, [e.target.name]: e.target.value })
+  }
+
+  const handleAddEvidence = () => {
+    setNewEvidence({
+      evidenceType: "",
+      evidenceName: "",
+      evidenceData: "",
+      evidenceHash: "",
+      submittedBy: ""
+    })
+    setEditingIndex(-1)
+    setShowEvidenceModal(true)
+  }
+
+  const handleEditEvidence = (index) => {
+    setNewEvidence(disputeDetails.evidence[index])
+    setEditingIndex(index)
+    setShowEvidenceModal(true)
+  }
+
+  const handleDeleteEvidence = (index) => {
+    const newEvidence = disputeDetails.evidence.filter((_, i) => i !== index)
     setDisputeDetails({ ...disputeDetails, evidence: newEvidence })
   }
 
-  const handleVerdict = () => {
+  const handleSaveEvidence = () => {
+    if (newEvidence.evidenceType && newEvidence.evidenceName && newEvidence.evidenceData && newEvidence.submittedBy) {
+      let updatedEvidence
+      if (editingIndex === -1) {
+        updatedEvidence = [...disputeDetails.evidence, { ...newEvidence, evidenceHash: `evidence${disputeDetails.evidence.length + 1}` }]
+      } else {
+        updatedEvidence = disputeDetails.evidence.map((ev, index) => 
+          index === editingIndex ? { ...newEvidence, evidenceHash: ev.evidenceHash } : ev
+        )
+      }
+      setDisputeDetails({ ...disputeDetails, evidence: updatedEvidence })
+      setShowEvidenceModal(false)
+    }
+  }
+
+  const handleVerdict = async () => {
     setIsLoading(true)
 
-    // Simulating API call with the disputeDetails state
-    setTimeout(() => {
+    try {
+      // Send disputeDetails to the API
+      const response = await fetch('/api/judge', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ disputes: [disputeDetails] })
+      });
+
+      const data = await response.json();
+
+      // Assuming the response follows the structure you provided
+      const arbitrationResult = data.arbitrationResults[0].arbitrationResult;
+
+      // Update the verdict state with the API response
       setVerdict({
-        inFavorOf: 'Party X',
-        decision: 'The judgement is in favor of Party X due to Party Y\'s failure to provide sufficient evidence of service delivery, as required by the contract terms.',
-        reasoning: 'Party X submitted the service contract and proof of full payment. The contract specified a delivery date of 2024-09-01 for the website. Party X also provided payment proof of $5000 made on 2024-08-05, which aligns with the agreed contract terms. Party Y’s submitted service logs indicated partial work but lacked specific dates or milestones that correlate with the services outlined in the contract. Based on the lack of conclusive delivery evidence from Party Y and Article II, Section 3 of the constitution, Party Y is found to be in breach of contract.',
-        references: [
-          'Evidence Submitted by Party X:',
-          'Service Contract: Detailed the services to be delivered by 2024-09-01.',
-          'Payment Receipt: Showed full payment made by Party X on 2024-08-05.',
-          'Evidence Submitted by Party Y:',
-          'Service Logs: The logs showed incomplete entries that did not provide clear milestones or a connection to the agreed-upon services.' 
-        ]
-      })
-      setIsLoading(false)
-      setShowResult(true)
-    }, 3000)
+        inFavorOf: arbitrationResult.judgement.decision.includes('Party X') ? 'Party X' : 'Party Y',
+        decision: arbitrationResult.judgement.decision,
+        reasoning: arbitrationResult.judgement.reasoning,
+        references: arbitrationResult.judgement.references
+      });
+
+      setShowResult(true);
+    } catch (error) {
+      console.error("Error submitting the dispute:", error);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -93,12 +151,12 @@ export default function Component() {
             Arbitron
           </h1>
           <Button variant="ghost" size="icon" className='p-2 size-10 rounded-full bg-slate-200 hover:bg-white'>
-          <Image src={logo} height={70} width={70} alt='logo'/>  
+            <Image src={logo} height={70} width={70} alt='logo' />  
           </Button>
         </div>
       </nav>
 
-      <main className="container mx-auto px-4 py-8 z-50">
+      <main className="container mx-auto px-4 py-8 z-50 ">
         <header className="mb-12 text-center">
           <h2 className="mb-3 p-3 bg-gradient-to-b from-black to-gray-300/80 bg-clip-text text-center text-6xl font-semibold leading-none text-transparent dark:from-white dark:to-slate-900/10">
             AI-Powered Arbitration System
@@ -116,6 +174,7 @@ export default function Component() {
                 <Label htmlFor="dispute-title" className="text-gray-300">Dispute Title</Label>
                 <Input id="dispute-title" value={disputeDetails.disputeTitle} className="bg-gray-800 border-gray-700 text-white" readOnly />
               </div>
+              
               <div>
                 <Label htmlFor="description" className="text-gray-300">Description</Label>
                 <Textarea id="description" value={disputeDetails.description} className="bg-gray-800 border-gray-700 text-white" readOnly />
@@ -127,54 +186,54 @@ export default function Component() {
         <div className="grid md:grid-cols-2 gap-8 mb-8">
           {disputeDetails.evidence.map((evidence, index) => (
             <Card key={index} className="mb-8 bg-gray-900/30">
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-2xl text-purple-400">Evidence {index + 1}</CardTitle>
+                <div className="flex space-x-2">
+                  <Button variant="ghost" size="icon" onClick={() => handleEditEvidence(index)}>
+                    <Pencil className="h-4 w-4" />
+                    <span className="sr-only">Edit evidence</span>
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => handleDeleteEvidence(index)}>
+                    <Trash2 className="h-4 w-4" />
+                    <span className="sr-only">Delete evidence</span>
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
-                <form className="space-y-4">
+                <div className="space-y-4">
                   <div>
-                    <Label htmlFor={`evidenceType-${index}`} className="text-gray-300">Evidence Type</Label>
-                    <Input 
-                      id={`evidenceType-${index}`} 
-                      value={evidence.evidenceType} 
-                      onChange={(e) => handleChange(e, index, 'evidenceType')} 
-                      className="bg-gray-800 border-gray-700 text-white" 
-                    />
+                    <Label className="text-gray-300">Evidence Type</Label>
+                    <Input value={evidence.evidenceType} className="bg-gray-800 border-gray-700 text-white" readOnly />
                   </div>
                   <div>
-                    <Label htmlFor={`evidenceName-${index}`} className="text-gray-300">Evidence Name</Label>
-                    <Input 
-                      id={`evidenceName-${index}`} 
-                      value={evidence.evidenceName} 
-                      onChange={(e) => handleChange(e, index, 'evidenceName')} 
-                      className="bg-gray-800 border-gray-700 text-white" 
-                    />
+                    <Label className="text-gray-300">Evidence Name</Label>
+                    <Input value={evidence.evidenceName} className="bg-gray-800 border-gray-700 text-white" readOnly />
                   </div>
                   <div>
-                    <Label htmlFor={`evidenceData-${index}`} className="text-gray-300">Evidence Data</Label>
-                    <Textarea 
-                      id={`evidenceData-${index}`} 
-                      value={evidence.evidenceData} 
-                      onChange={(e) => handleChange(e, index, 'evidenceData')} 
-                      className="bg-gray-800 border-gray-700 text-white" 
-                    />
+                    <Label className="text-gray-300">Evidence Data</Label>
+                    <Textarea value={evidence.evidenceData} className="bg-gray-800 border-gray-700 text-white" readOnly />
+                  </div>
+
+                  <div>
+                    <Label className="text-gray-300">Evidence Hash</Label>
+                    <Input value={evidence.evidenceHash} className="bg-gray-800 border-gray-700 text-white" readOnly />
                   </div>
                   <div>
-                    <Label htmlFor={`submittedBy-${index}`} className="text-gray-300">Submitted By</Label>
-                    <Input 
-                      id={`submittedBy-${index}`} 
-                      value={evidence.submittedBy} 
-                      onChange={(e) => handleChange(e, index, 'submittedBy')} 
-                      className="bg-gray-800 border-gray-700 text-white" 
-                    />
+                    <Label className="text-gray-300">Submitted By</Label>
+                    <Input value={evidence.submittedBy} className="bg-gray-800 border-gray-700 text-white" readOnly />
                   </div>
-                </form>
+                </div>
               </CardContent>
             </Card>
           ))}
         </div>
 
-        <div className="text-center">
+        <div className="text-center space-y-4">
+          <Button onClick={handleAddEvidence} size="lg" className="bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white font-bold py-3 px-6 rounded-full shadow-lg transform transition duration-200 hover:scale-105">
+            <PlusCircle className="mr-2 h-5 w-5" />
+            Add Evidence
+          </Button>
+
           <Button onClick={handleVerdict} disabled={isLoading} size="lg" className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-bold py-3 px-6 rounded-full shadow-lg transform transition duration-200 hover:scale-105">
             {isLoading ? (
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -224,9 +283,82 @@ export default function Component() {
             </div>
           </DialogContent>
         </Dialog>
+
+        <Dialog open={showEvidenceModal} onOpenChange={setShowEvidenceModal}>
+          <DialogContent className="bg-gray-900 text-white border-2 border-purple-500">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold text-center mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
+                {editingIndex === -1 ? 'Add New Evidence' : 'Edit Evidence'}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="evidenceType" className="text-gray-300">Evidence Type</Label>
+                <Input
+                  id="evidenceType"
+                  name="evidenceType"
+                  value={newEvidence.evidenceType}
+                  onChange={handleNewEvidenceChange}
+                  className="bg-gray-800 border-gray-700 text-white"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="evidenceName" className="text-gray-300">Evidence Name</Label>
+                <Input
+                  id="evidenceName"
+                  name="evidenceName"
+                  value={newEvidence.evidenceName}
+                  onChange={handleNewEvidenceChange}
+                  className="bg-gray-800 border-gray-700 text-white"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="evidenceData" className="text-gray-300">Evidence Data</Label>
+                <Textarea
+                  id="evidenceData"
+                  name="evidenceData"
+                  value={newEvidence.evidenceData}
+                  onChange={handleNewEvidenceChange}
+                  className="bg-gray-800 border-gray-700 text-white"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="evidenceHash" className="text-gray-300">Evidence Hash</Label>
+                <Input
+                  id="evidenceHash"
+                  name="evidenceHash"
+                  value={newEvidence.evidenceHash}
+                  onChange={handleNewEvidenceChange}
+                  className="bg-gray-800 border-gray-700 text-white"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="submittedBy" className="text-gray-300">Submitted By</Label>
+                <Input
+                  id="submittedBy"
+                  name="submittedBy"
+                  value={newEvidence.submittedBy}
+                  onChange={handleNewEvidenceChange}
+                  className="bg-gray-800 border-gray-700 text-white"
+                  required
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={handleSaveEvidence} className="bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white font-bold py-2 px-4 rounded">
+                Save Evidence
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </main>
 
-      <Meteors number={10} />
+      {/* <Meteors number={10} /> */}
       <Particles
         className="absolute inset-0"
         quantity={200}
