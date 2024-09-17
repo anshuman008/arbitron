@@ -7,16 +7,17 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Loader2, Scale, CheckCircle, XCircle, PlusCircle, Pencil, Trash2 } from "lucide-react"
+import { Loader2, Scale, CheckCircle, PlusCircle, Pencil, Trash2 } from "lucide-react"
 import Image from 'next/image'
 import logo from '@/public/balance.png'
-import Meteors from '@/components/magicui/meteors'
 import Particles from '@/components/magicui/particles'
-
+import Lottie from 'lottie-react'
+import floatingDog from "@/public/error.json";
 export default function Component() {
   const [isLoading, setIsLoading] = useState(false)
   const [showResult, setShowResult] = useState(false)
   const [showEvidenceModal, setShowEvidenceModal] = useState(false)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [color, setColor] = useState("#ffffff")
   const [editingIndex, setEditingIndex] = useState(-1)
 
@@ -67,7 +68,7 @@ export default function Component() {
       ]
   })
 
-  const handleNewEvidenceChange = (e) => {
+  const handleNewEvidenceChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setNewEvidence({ ...newEvidence, [e.target.name]: e.target.value })
   }
 
@@ -83,13 +84,13 @@ export default function Component() {
     setShowEvidenceModal(true)
   }
 
-  const handleEditEvidence = (index) => {
+  const handleEditEvidence = (index:number) => {
     setNewEvidence(disputeDetails.evidence[index])
     setEditingIndex(index)
     setShowEvidenceModal(true)
   }
 
-  const handleDeleteEvidence = (index) => {
+  const handleDeleteEvidence = (index:number) => {
     const newEvidence = disputeDetails.evidence.filter((_, i) => i !== index)
     setDisputeDetails({ ...disputeDetails, evidence: newEvidence })
   }
@@ -128,12 +129,27 @@ export default function Component() {
       const arbitrationResult = data.arbitrationResults[0].arbitrationResult;
 
       // Update the verdict state with the API response
-      setVerdict({
-        inFavorOf: arbitrationResult.judgement.decision.includes('Party X') ? 'Party X' : 'Party Y',
-        decision: arbitrationResult.judgement.decision,
-        reasoning: arbitrationResult.judgement.reasoning,
-        references: arbitrationResult.judgement.references
-      });
+
+      console.log(arbitrationResult,'this is the result');
+
+      if(arbitrationResult.judgement){
+        setVerdict({
+          inFavorOf: arbitrationResult.judgement.decision.includes('Party X') ? 'Party X' : arbitrationResult.decision.toLowerCase().includes('insufficient') ? 'Insufficient Evidence': 'Party Y',          decision: arbitrationResult.judgement.decision,
+          reasoning: arbitrationResult.judgement.reasoning,
+          references: arbitrationResult.judgement.references
+        });
+      }
+      else{
+      
+        // Insufficient Evidence
+        setVerdict({
+          inFavorOf: arbitrationResult.decision.includes('Party X') ? 'Party X' : arbitrationResult.decision.toLowerCase().includes('insufficient') ? 'Insufficient Evidence': 'Party Y',
+          decision: arbitrationResult.decision,
+          reasoning: arbitrationResult.reasoning,
+          references: arbitrationResult.references
+        });
+      }
+     
 
       setShowResult(true);
     } catch (error) {
@@ -245,7 +261,9 @@ export default function Component() {
         </div>
 
         <Dialog open={showResult} onOpenChange={setShowResult}>
-          <DialogContent className="bg-gray-900 text-white border-2 border-purple-500 max-w-2xl h-[90vh] overflow-scroll no-scrollbar">
+
+          {
+            verdict.inFavorOf !== 'Insufficient Evidence' &&  <DialogContent className="bg-gray-900 text-white border-2 border-purple-500 max-w-2xl h-[90vh] overflow-scroll no-scrollbar">
             <DialogHeader>
               <DialogTitle className="text-3xl font-bold text-center mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
                 Arbitration Verdict
@@ -256,13 +274,17 @@ export default function Component() {
             </DialogHeader>
             <div className="space-y-6 mt-6">
               <div className="flex items-center justify-center space-x-2 text-2xl font-semibold">
-                <span>In Favor Of:</span>
-                <span className="text-pink-400">{verdict.inFavorOf}</span>
-                {verdict.inFavorOf === 'Party X' ? (
-                  <CheckCircle className="text-green-500 h-6 w-6" />
-                ) : (
-                  <XCircle className="text-red-500 h-6 w-6" />
-                )}
+                <span>{verdict.inFavorOf === 'Insufficient Evidence' ?  <span className="text-red-500">{verdict.inFavorOf}</span>:'In Favor Of: '}</span>
+
+
+                {
+                  verdict.inFavorOf !== 'Insufficient Evidence' &&  <span className="text-pink-400">{verdict.inFavorOf}</span>
+                }
+               
+                { verdict.inFavorOf !== 'Insufficient Evidence' &&  <CheckCircle className="text-green-500 h-6 w-6" />}
+
+           
+
               </div>
               <div className="bg-gray-800 p-4 rounded-lg">
                 <h3 className="text-xl font-semibold mb-2 text-purple-400">Decision:</h3>
@@ -282,6 +304,39 @@ export default function Component() {
               </div>
             </div>
           </DialogContent>
+          }
+
+          {
+              verdict.inFavorOf === 'Insufficient Evidence' && <DialogContent className="bg-gray-900 text-white border-2 border-purple-500 max-w-2xl h-[90vh] overflow-scroll no-scrollbar">
+              <DialogHeader>
+                <DialogTitle className="text-3xl font-bold text-center mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
+                  Arbitration Verdict
+                </DialogTitle>
+                <DialogDescription className="text-center text-gray-300 text-lg">
+                  The AI has reached a decision based on the provided information and relevant articles.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-6 mt-6">
+
+               <div className='w-full flex justify-center items-center'>
+               <Lottie animationData={floatingDog} className='size-64'/>
+               </div>
+                <div className="flex items-center justify-center space-x-2 text-2xl font-semibold">
+                  <span>{verdict.inFavorOf === 'Insufficient Evidence' ?  <span className="text-red-500">{verdict.inFavorOf}</span>:'In Favor Of: '}</span>
+                  {
+                    verdict.inFavorOf !== 'Insufficient Evidence' &&  <span className="text-pink-400">{verdict.inFavorOf}</span>
+                  }
+                 
+                  { verdict.inFavorOf !== 'Insufficient Evidence' &&  <CheckCircle className="text-green-500 h-6 w-6" />}
+  
+                </div>
+          
+             
+              </div>
+            </DialogContent>
+          }
+         
+
         </Dialog>
 
         <Dialog open={showEvidenceModal} onOpenChange={setShowEvidenceModal}>

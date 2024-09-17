@@ -1,10 +1,9 @@
 'use client'
-import React, { useEffect, useState } from 'react'
+import React, {  useState } from 'react'
 import { motion } from "framer-motion"
 
-import { EqualIcon, Shield, Gavel, Menu } from 'lucide-react'
-import Link from 'next/link'
-import BlurIn from "@/components/magicui/blur-in";
+import { EqualIcon, Shield, Gavel } from 'lucide-react'
+
 import Meteors from '@/components/magicui/meteors';
 import AnimatedBeamGpt from '@/components/AnimatedGpt';
 import { Button } from '@/components/ui/button';
@@ -15,6 +14,7 @@ import Particles from '@/components/magicui/particles';
 
 export default function WelcomePage() {
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [color, setColor] = useState("#ffffff");
 
   // useEffect(() => {
