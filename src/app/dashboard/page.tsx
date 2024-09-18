@@ -1,5 +1,4 @@
 'use client'
-
 import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -13,6 +12,8 @@ import logo from '@/public/balance.png'
 import Particles from '@/components/magicui/particles'
 import Lottie from 'lottie-react'
 import floatingDog from "@/public/error.json";
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 export default function Component() {
   const [isLoading, setIsLoading] = useState(false)
   const [showResult, setShowResult] = useState(false)
@@ -20,7 +21,8 @@ export default function Component() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [color, setColor] = useState("#ffffff")
   const [editingIndex, setEditingIndex] = useState(-1)
-
+  const router = useRouter()
+  
   const [newEvidence, setNewEvidence] = useState({
     evidenceType: "",
     evidenceName: "",
@@ -96,7 +98,7 @@ export default function Component() {
   }
 
   const handleSaveEvidence = () => {
-    if (newEvidence.evidenceType && newEvidence.evidenceName && newEvidence.evidenceData && newEvidence.submittedBy) {
+    if (newEvidence.evidenceType.trim() && newEvidence.evidenceName.trim() && newEvidence.evidenceData.trim() && newEvidence.submittedBy.trim()) {
       let updatedEvidence
       if (editingIndex === -1) {
         updatedEvidence = [...disputeDetails.evidence, { ...newEvidence, evidenceHash: `evidence${disputeDetails.evidence.length + 1}` }]
@@ -108,10 +110,18 @@ export default function Component() {
       setDisputeDetails({ ...disputeDetails, evidence: updatedEvidence })
       setShowEvidenceModal(false)
     }
+       
+    toast.error('please fill all the fields');
   }
 
   const handleVerdict = async () => {
     setIsLoading(true)
+    
+    if(!disputeDetails.disputeTitle.trim() || !disputeDetails.description.trim()){
+      toast.error('Please Fill Dispute Details!!');
+      setIsLoading(false)
+      return;
+    }
 
     try {
       // Send disputeDetails to the API
@@ -130,11 +140,12 @@ export default function Component() {
 
       // Update the verdict state with the API response
 
-      console.log(arbitrationResult,'this is the result');
+      // console.log(arbitrationResult,'this is the result');
 
-      if(arbitrationResult.judgement){
+      if(arbitrationResult.judgement){   
         setVerdict({
-          inFavorOf: arbitrationResult.judgement.decision.includes('Party X') ? 'Party X' : arbitrationResult.decision.toLowerCase().includes('insufficient') ? 'Insufficient Evidence': 'Party Y',          decision: arbitrationResult.judgement.decision,
+          inFavorOf: arbitrationResult.judgement.decision.includes('Party X') ? 'Party X' : arbitrationResult.judgement.decision.toLowerCase().includes('insufficient') ? 'Insufficient Evidence': 'Party Y', 
+          decision: arbitrationResult.judgement.decision,
           reasoning: arbitrationResult.judgement.reasoning,
           references: arbitrationResult.judgement.references
         });
@@ -159,11 +170,12 @@ export default function Component() {
     }
   }
 
+
   return (
     <div className="relative flex h-screen w-full flex-col overflow-x-hidden rounded-lg border bg-background md:shadow-xl">
-      <nav className="bg-background p-4">
+      <nav className="bg-background p-4 z-50">
         <div className="container mx-auto flex justify-between items-center">
-          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
+          <h1 className="cursor-pointer text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600" onClick={()=>router.push('/')}>
             Arbitron
           </h1>
           <Button variant="ghost" size="icon" className='p-2 size-10 rounded-full bg-slate-200 hover:bg-white'>
@@ -188,12 +200,16 @@ export default function Component() {
             <form className="space-y-4">
               <div>
                 <Label htmlFor="dispute-title" className="text-gray-300">Dispute Title</Label>
-                <Input id="dispute-title" value={disputeDetails.disputeTitle} className="bg-gray-800 border-gray-700 text-white" readOnly />
+                {/* setNewEvidence({ ...newEvidence, [e.target.name]: e.target.value }) */}
+
+                <Input id="dispute-title" value={disputeDetails.disputeTitle} onChange={(e) => {setDisputeDetails({...disputeDetails,['disputeTitle']:e.target.value})}} className="bg-gray-800 border-gray-700 text-white"  />
               </div>
               
               <div>
                 <Label htmlFor="description" className="text-gray-300">Description</Label>
-                <Textarea id="description" value={disputeDetails.description} className="bg-gray-800 border-gray-700 text-white" readOnly />
+                <Textarea id="description" value={disputeDetails.description} onChange={(e) => {
+                  setDisputeDetails({...disputeDetails,['description']:e.target.value})
+                }} className="bg-gray-800 border-gray-700 text-white"  />
               </div>
             </form>
           </CardContent>
