@@ -180,7 +180,7 @@ export default function Component() {
           <p className="mb-3 p-3 bg-gradient-to-b from-black to-gray-300/80 bg-clip-text text-center text-4xl font-semibold leading-none text-transparent dark:from-white dark:to-slate-900/10">Resolving disputes with impartial AI judgment</p>
         </header>
 
-        <Card className="mb-8 bg-gray-900/30">
+        <Card className="mb-8 dark:bg-transparent dark:backdrop-blur-md dark:[border:1px_solid_rgba(255,255,255,.1)] dark:[box-shadow:0_-20px_80px_-20px_#ffffff1f_inset]">
           <CardHeader>
             <CardTitle className="text-2xl text-purple-400">Dispute Details</CardTitle>
           </CardHeader>
@@ -201,7 +201,7 @@ export default function Component() {
 
         <div className="grid md:grid-cols-2 gap-8 mb-8">
           {disputeDetails.evidence.map((evidence, index) => (
-            <Card key={index} className="mb-8 bg-gray-900/30">
+            <Card key={index} className="mb-8 dark:bg-transparent dark:backdrop-blur-md dark:[border:1px_solid_rgba(255,255,255,.1)] dark:[box-shadow:0_-20px_80px_-20px_#ffffff1f_inset]">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-2xl text-purple-400">Evidence {index + 1}</CardTitle>
                 <div className="flex space-x-2">
@@ -244,7 +244,7 @@ export default function Component() {
           ))}
         </div>
 
-        <div className="text-center space-y-4">
+        <div className="text-center space-y-4 space-x-5">
           <Button onClick={handleAddEvidence} size="lg" className="bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white font-bold py-3 px-6 rounded-full shadow-lg transform transition duration-200 hover:scale-105">
             <PlusCircle className="mr-2 h-5 w-5" />
             Add Evidence
@@ -263,7 +263,7 @@ export default function Component() {
         <Dialog open={showResult} onOpenChange={setShowResult}>
 
           {
-            verdict.inFavorOf !== 'Insufficient Evidence' &&  <DialogContent className="bg-gray-900 text-white border-2 border-purple-500 max-w-2xl h-[90vh] overflow-scroll no-scrollbar">
+            verdict.inFavorOf !== 'Insufficient Evidence' &&  <DialogContent className="dark:bg-transparent dark:backdrop-blur-md dark:[border:1px_solid_rgba(255,255,255,.1)] dark:[box-shadow:0_-20px_80px_-20px_#ffffff1f_inset] text-white border-2 border-purple-500 max-w-2xl h-[90vh] overflow-scroll no-scrollbar">
             <DialogHeader>
               <DialogTitle className="text-3xl font-bold text-center mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
                 Arbitration Verdict
@@ -307,7 +307,7 @@ export default function Component() {
           }
 
           {
-              verdict.inFavorOf === 'Insufficient Evidence' && <DialogContent className="bg-gray-900 text-white border-2 border-purple-500 max-w-2xl h-[90vh] overflow-scroll no-scrollbar">
+              verdict.inFavorOf === 'Insufficient Evidence' && <DialogContent className="dark:bg-transparent dark:backdrop-blur-md dark:[border:1px_solid_rgba(255,255,255,.1)] dark:[box-shadow:0_-20px_80px_-20px_#ffffff1f_inset] text-white border-2 border-purple-500 max-w-2xl h-[90vh] overflow-scroll no-scrollbar">
               <DialogHeader>
                 <DialogTitle className="text-3xl font-bold text-center mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
                   Arbitration Verdict
