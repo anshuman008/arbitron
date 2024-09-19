@@ -88,7 +88,7 @@ export default function WelcomePage() {
 
 
         <section className="w-full max-w-4xl mx-auto px-4 mb-16 z-50">
-          <h2 className="mb-10 bg-gradient-to-b from-black to-gray-300/80 bg-clip-text text-center text-5xl md:text-4xl font-semibold leading-none text-transparent dark:from-white dark:to-slate-900/10">Frequently Asked Questions</h2>
+          <h2 className="mb-10 bg-gradient-to-b from-black to-gray-300/80 bg-clip-text text-center text-5xl md:text-5xl font-semibold leading-none text-transparent dark:from-white dark:to-slate-900/10">Frequently Asked Questions</h2>
           <div className="space-y-4">
             {faqItems.map((item, index) => (
               <div key={index} className="dark:bg-transparent dark:backdrop-blur-md dark:[border:1px_solid_rgba(255,255,255,.1)] dark:[box-shadow:0_-20px_80px_-20px_#ffffff1f_inset] rounded-lg">
