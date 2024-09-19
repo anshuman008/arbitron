@@ -223,7 +223,7 @@ export default function Component() {
                 <div className="flex space-x-2">
                   <Button variant="ghost" size="icon" onClick={() => handleEditEvidence(index)}>
                     <Pencil className="h-4 w-4" />
-                    <span className="sr-only">Edit evidence</span>
+                    <span className="sr-only ">Edit evidence</span>
                   </Button>
                   <Button variant="ghost" size="icon" onClick={() => handleDeleteEvidence(index)}>
                     <Trash2 className="h-4 w-4" />
@@ -261,12 +261,12 @@ export default function Component() {
         </div>
 
         <div className="text-center space-y-4 space-x-5">
-          <Button onClick={handleAddEvidence} size="lg" className="bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white font-bold py-3 px-6 rounded-full shadow-lg transform transition duration-200 hover:scale-105">
+          <Button onClick={handleAddEvidence} size="lg" className="dark:bg-transparent dark:backdrop-blur-md dark:[border:1px_solid_rgba(255,255,255,.1)] dark:[box-shadow:0_-20px_80px_-20px_#ffffff1f_inset] text-white">
             <PlusCircle className="mr-2 h-5 w-5" />
             Add Evidence
           </Button>
 
-          <Button onClick={handleVerdict} disabled={isLoading} size="lg" className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-bold py-3 px-6 rounded-full shadow-lg transform transition duration-200 hover:scale-105">
+          <Button onClick={handleVerdict} disabled={isLoading} size="lg" className="dark:bg-transparent dark:backdrop-blur-md dark:[border:1px_solid_rgba(255,255,255,.1)] dark:[box-shadow:0_-20px_80px_-20px_#ffffff1f_inset] text-white">
             {isLoading ? (
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
             ) : (
@@ -356,7 +356,7 @@ export default function Component() {
         </Dialog>
 
         <Dialog open={showEvidenceModal} onOpenChange={setShowEvidenceModal}>
-          <DialogContent className="bg-gray-900 text-white border-2 border-purple-500">
+          <DialogContent className="bg-[#030712] text-white border-2 ">
             <DialogHeader>
               <DialogTitle className="text-2xl font-bold text-center mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
                 {editingIndex === -1 ? 'Add New Evidence' : 'Edit Evidence'}
@@ -421,7 +421,7 @@ export default function Component() {
               </div>
             </div>
             <DialogFooter>
-              <Button onClick={handleSaveEvidence} className="bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white font-bold py-2 px-4 rounded">
+              <Button onClick={handleSaveEvidence} className="dark:bg-transparent dark:backdrop-blur-md dark:[border:1px_solid_rgba(255,255,255,.1)] dark:[box-shadow:0_-20px_80px_-20px_#ffffff1f_inset] text-white font-bold py-2 px-4 rounded hover:bg-slate-500">
                 Save Evidence
               </Button>
             </DialogFooter>
